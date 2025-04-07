@@ -24,7 +24,7 @@ void data_task(void *p) {
 }
 
 void process_task(void *p) {
-    
+
     static int buffer[5] = {0}; 
     static int idx = 0;        
     static int count = 0;     
@@ -34,22 +34,25 @@ void process_task(void *p) {
     int data = 0;
 
     while (true) {
-        if (xQueueReceive(xQueueData, &data, 100)) {
-            sum -= buffer[idx];
-
-            buffer[idx] = data;
-
-            sum += data;
-
-            idx = (idx + 1) % 5;
-
+        if (xQueueReceive(xQueueData, &data, pdMS_TO_TICKS(100))) {
             if (count < 5) {
+                buffer[idx] = data;
+                sum += data;
+                idx = (idx + 1) % 5;
                 count++;
+                if (count == 5) { 
+                    int media = sum / 5;
+                    printf("%d\n", media);
+                }
             }
-
-            int media = sum / count;
-
-            printf("%d\n", media);
+            else {
+                sum -= buffer[idx];
+                buffer[idx] = data;
+                sum += data;
+                idx = (idx + 1) % 5;
+                int media = sum / 5;
+                printf("%d\n", media);
+            }
             
             // deixar esse delay!
             vTaskDelay(pdMS_TO_TICKS(50));
