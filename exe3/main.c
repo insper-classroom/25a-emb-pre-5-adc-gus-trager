@@ -2,7 +2,7 @@
 #include <task.h>
 #include <semphr.h>
 #include <queue.h>
-
+#include <stdlib.h>  
 #include "pico/stdlib.h"
 #include <stdio.h>
 
@@ -40,13 +40,12 @@ void process_task(void *p) {
                 sum += data;
                 idx = (idx + 1) % 5;
                 count++;
-                if (count == 5) { 
+                if (count == 5) {
                     int media = sum / 5;
                     printf("%d\n", media);
                     averages_printed++;
                 }
-            }
-            else {
+            } else {
                 sum -= buffer[idx];
                 buffer[idx] = data;
                 sum += data;
@@ -58,7 +57,7 @@ void process_task(void *p) {
             vTaskDelay(pdMS_TO_TICKS(50));
         }
     }
-    vTaskDelete(NULL);
+    exit(0);
 }
 
 int main() {
