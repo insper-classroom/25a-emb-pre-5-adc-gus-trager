@@ -24,18 +24,17 @@ void data_task(void *p) {
 
 void process_task(void *p) {
     int total_samples = sizeof(sine_wave_four_cycles) / sizeof(sine_wave_four_cycles[0]);
-    int samplesProcessed = 0;
+    int total_averages = total_samples - 5 + 1;
+    int averages_printed = 0;
 
-    static int buffer[5] = {0};
-    static int idx = 0;     
-    static int count = 0;  
-    static int sum = 0;      
+    int buffer[5] = {0};
+    int idx = 0;  
+    int sum = 0;   
+    int count = 0; 
 
     int data = 0;
-
-    while (true) {
+    while (averages_printed < total_averages) {
         if (xQueueReceive(xQueueData, &data, pdMS_TO_TICKS(100))) {
-            samplesProcessed++;
             if (count < 5) {
                 buffer[idx] = data;
                 sum += data;
@@ -44,6 +43,7 @@ void process_task(void *p) {
                 if (count == 5) { 
                     int media = sum / 5;
                     printf("%d\n", media);
+                    averages_printed++;
                 }
             }
             else {
@@ -53,13 +53,9 @@ void process_task(void *p) {
                 idx = (idx + 1) % 5;
                 int media = sum / 5;
                 printf("%d\n", media);
+                averages_printed++;
             }
             vTaskDelay(pdMS_TO_TICKS(50));
-        }
-        else {
-            if (samplesProcessed >= total_samples) {
-                break;
-            }
         }
     }
     vTaskDelete(NULL);
