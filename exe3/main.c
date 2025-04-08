@@ -2,7 +2,7 @@
 #include <task.h>
 #include <semphr.h>
 #include <queue.h>
-#include <stdlib.h>
+
 #include "pico/stdlib.h"
 #include <stdio.h>
 #include "data.h"
@@ -21,31 +21,33 @@ void data_task(void *p) {
 }
 
 void process_task(void *p) {
-    int total_samples = 11;
-    int samples_received = 0;
+    int data = 0;
     int buffer[5] = {0};
-    int idx = 0, sum = 0, data = 0;
-    while (samples_received < total_samples) {
+    int count = 0;
+    
+    while (true) {
         if (xQueueReceive(xQueueData, &data, pdMS_TO_TICKS(100))) {
-            samples_received++;
-            if (samples_received <= 5) {
-                buffer[idx] = data;
-                sum += data;
-                idx = (idx + 1) % 5;
-                if (samples_received == 5) {
-                    printf("%d\n", sum / 5);
+            if (count < 5) {
+                buffer[count] = data;
+                count++;
+            } 
+            else {
+                for (int i = 0; i < 4; i++) {
+                    buffer[i] = buffer[i + 1];
                 }
-            } else {
-                sum -= buffer[idx];
-                buffer[idx] = data;
-                sum += data;
-                idx = (idx + 1) % 5;
-                printf("%d\n", sum / 5);
+                buffer[4] = data;
+            }            
+            if (count == 5) {
+                int soma = 0;
+                for (int i = 0; i < 5; i++) {
+                    soma += buffer[i];
+                }
+                printf("%d\n", soma / 5);
             }
+            
             vTaskDelay(pdMS_TO_TICKS(50));
         }
     }
-    exit(0);
 }
 
 int main() {
